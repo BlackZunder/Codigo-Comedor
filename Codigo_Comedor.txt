@@ -1,0 +1,98 @@
+semaphore comedor = 50;
+semaphore mostradores_comida = 5;
+semaphore abridores = 50;
+semaphore postre = 3;
+semaphore mutex = 1;
+semaphore impresion = 1;
+int total_abridores = 0;
+int total_postres = 0;
+
+void soldado(int id) {
+  int bebida;
+
+  wait(comedor);
+
+  wait(impresion);
+  cout << "Soldado " << id << " entra al comedor\n";
+  signal(impresion);
+
+  wait(mostradores_comida);
+
+  bebida = random(2); // 0 = agua, 1 = refresco
+
+  if (bebida == 1) {
+    wait(impresion);
+    cout << "Soldado " << id << " elige bandeja con refresco (requiere abridor)\n";
+    signal(impresion);
+
+    wait(abridores);
+
+    wait(impresion);
+    cout << "Soldado " << id << " usa un abridor para abrir su bebida\n";
+    signal(impresion);
+
+    wait(mutex);
+    total_abridores = total_abridores + 1;
+    signal(mutex);
+
+    signal(abridores);
+  } else {
+    wait(impresion);
+    cout << "Soldado " << id << " elige bandeja con agua (no requiere abridor)\n";
+    signal(impresion);
+  }
+
+  signal(mostradores_comida);
+
+  if (random(2) == 1) {
+    wait(mostradores_postre);
+
+    wait(impresion);
+    cout << "Soldado " << id << " toma postre\n";
+    signal(impresion);
+
+    wait(mutex);
+    total_postres = total_postres + 1;
+    signal(mutex);
+
+    signal(mostradores_postre);
+  }
+
+  wait(impresion);
+  cout << "Soldado " << id << " termina y sale\n";
+  signal(impresion);
+
+  signal(comedor);
+}
+
+
+void main() {
+int i = 1;
+  while (i <= 500) {
+    cobegin {
+      soldado(i);     soldado(i+1);   soldado(i+2);   soldado(i+3);   soldado(i+4);
+      soldado(i+5);   soldado(i+6);   soldado(i+7);   soldado(i+8);   soldado(i+9);
+      soldado(i+10);  soldado(i+11);  soldado(i+12);  soldado(i+13);  soldado(i+14);
+      soldado(i+15);  soldado(i+16);  soldado(i+17);  soldado(i+18);  soldado(i+19);
+      soldado(i+20);  soldado(i+21);  soldado(i+22);  soldado(i+23);  soldado(i+24);
+      soldado(i+25);  soldado(i+26);  soldado(i+27);  soldado(i+28);  soldado(i+29);
+      soldado(i+30);  soldado(i+31);  soldado(i+32);  soldado(i+33);  soldado(i+34);
+      soldado(i+35);  soldado(i+36);  soldado(i+37);  soldado(i+38);  soldado(i+39);
+      soldado(i+40);  soldado(i+41);  soldado(i+42);  soldado(i+43);  soldado(i+44);
+      soldado(i+45);  soldado(i+46);  soldado(i+47);  soldado(i+48);  soldado(i+49);
+      soldado(i+50);  soldado(i+51);  soldado(i+52);  soldado(i+53);  soldado(i+54);
+      soldado(i+55);  soldado(i+56);  soldado(i+57);  soldado(i+58);  soldado(i+59);
+      soldado(i+60);  soldado(i+61);  soldado(i+62);  soldado(i+63);  soldado(i+64);
+      soldado(i+65);  soldado(i+66);  soldado(i+67);  soldado(i+68);  soldado(i+69);
+      soldado(i+70);  soldado(i+71);  soldado(i+72);  soldado(i+73);  soldado(i+74);
+      soldado(i+75);  soldado(i+76);  soldado(i+77);  soldado(i+78);  soldado(i+79);
+      soldado(i+80);  soldado(i+81);  soldado(i+82);  soldado(i+83);  soldado(i+84);
+      soldado(i+85);  soldado(i+86);  soldado(i+87);  soldado(i+88);  soldado(i+89);
+      soldado(i+90);  soldado(i+91);  soldado(i+92);  soldado(i+93);  soldado(i+94);
+      soldado(i+95);  soldado(i+96);  soldado(i+97);  soldado(i+98);  soldado(i+99);
+
+    }
+    
+    i = i + 100;
+  }
+}
