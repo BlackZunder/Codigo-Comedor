@@ -1,73 +1,101 @@
-semaphore comedor = 50;
-semaphore mostradores_comida = 5;
-semaphore abridores = 50;
-semaphore postre = 3;
-semaphore mutex = 1;
-semaphore impresion = 1;
-int total_abridores = 0;
-int total_postres = 0;
+// -----------------------------
+// DECLARACIÓN DE SEMÁFOROS
+// -----------------------------
+
+semaphore comedor = 50;           // Controla el aforo máximo del comedor (50 soldados simultáneamente)
+semaphore mostradores_comida = 5; // Solo 5 soldados pueden servirse comida al mismo tiempo
+semaphore abridores = 50;         // Hay 50 abridores disponibles para abrir refrescos
+semaphore postre = 3;             // Solo hay 3 postres disponibles a la vez
+semaphore mutex = 1;              // Semáforo para exclusión mutua en variables críticas
+semaphore impresion = 1;          // Semáforo para controlar la impresión sin intercalado
+
+// -----------------------------
+// VARIABLES GLOBALES
+// -----------------------------
+
+int total_abridores = 0;   // Cuenta total de veces que se usaron abridores
+int total_postres = 0;     // Cuenta total de postres tomados
+int soldados_dentro = 0;   // Número actual de soldados dentro del comedor
+
+// -----------------------------
+// FUNCIÓN PRINCIPAL DE SOLDADO
+// -----------------------------
 
 void soldado(int id) {
   int bebida;
 
-  wait(comedor);
+  wait(comedor);  // Espera si el comedor está lleno
+
+  wait(mutex);
+  soldados_dentro++;  // Incrementa el contador de soldados dentro
+  signal(mutex);
 
   wait(impresion);
-  cout << "Soldado " << id << " entra al comedor\n";
+  cout << "Soldado " << id << " entra al comedor (actual: " << soldados_dentro << ")\n";
   signal(impresion);
 
-  wait(mostradores_comida);
+  wait(mostradores_comida);  // Espera turno para servirse comida
 
-  bebida = random(2); // 0 = agua, 1 = refresco
+  bebida = random(2);  // 0 = agua, 1 = refresco
 
   if (bebida == 1) {
     wait(impresion);
     cout << "Soldado " << id << " elige bandeja con refresco (requiere abridor)\n";
     signal(impresion);
 
-    wait(abridores);
+    wait(abridores);  // Toma un abridor
 
     wait(impresion);
     cout << "Soldado " << id << " usa un abridor para abrir su bebida\n";
     signal(impresion);
 
     wait(mutex);
-    total_abridores = total_abridores + 1;
+    total_abridores++;  // Registro estadístico
     signal(mutex);
 
-    signal(abridores);
+    signal(abridores);  // Libera el abridor
   } else {
     wait(impresion);
     cout << "Soldado " << id << " elige bandeja con agua (no requiere abridor)\n";
     signal(impresion);
   }
 
-  signal(mostradores_comida);
+  signal(mostradores_comida);  // Libera mostrador
 
+  // Decisión aleatoria para tomar postre
   if (random(2) == 1) {
-    wait(mostradores_postre);
+    wait(postre);  // Espera por un postre disponible
 
     wait(impresion);
     cout << "Soldado " << id << " toma postre\n";
     signal(impresion);
 
     wait(mutex);
-    total_postres = total_postres + 1;
+    total_postres++;  // Registro estadístico
     signal(mutex);
 
-    signal(mostradores_postre);
+    signal(postre);  // Libera el postre
   }
 
   wait(impresion);
   cout << "Soldado " << id << " termina y sale\n";
   signal(impresion);
 
-  signal(comedor);
+  wait(mutex);
+  soldados_dentro--;  // Decrementa el contador de soldados dentro
+  signal(mutex);
+
+  signal(comedor);  // Libera un cupo en el comedor
 }
 
+// -----------------------------
+// FUNCIÓN PRINCIPAL MAIN
+// -----------------------------
 
 void main() {
-int i = 1;
+  int i = 1;
+
+  // Lanza soldados de 100 en 100, hasta llegar a 500
   while (i <= 500) {
     cobegin {
       soldado(i);     soldado(i+1);   soldado(i+2);   soldado(i+3);   soldado(i+4);
@@ -90,9 +118,9 @@ int i = 1;
       soldado(i+85);  soldado(i+86);  soldado(i+87);  soldado(i+88);  soldado(i+89);
       soldado(i+90);  soldado(i+91);  soldado(i+92);  soldado(i+93);  soldado(i+94);
       soldado(i+95);  soldado(i+96);  soldado(i+97);  soldado(i+98);  soldado(i+99);
-
     }
-    
-    i = i + 100;
+
+    i = i + 100;  // Incrementa el índice en 100
   }
 }
+
